@@ -681,7 +681,7 @@ class RifCard(QFrame):
 
         # Contatore bustine ("3 bustine")
         n = len(records)
-        n_lbl = QLabel(f"{n} bustina{'e' if n != 1 else ''}")
+        n_lbl = QLabel("")
         n_lbl.setObjectName("count_lbl")
 
         # Totale peso per questa scheda (somma di tutte le bustine)
