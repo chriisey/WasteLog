@@ -1343,22 +1343,26 @@ class MainWindow(QMainWindow):
         self._downloader.start()
 
     def _apply_update(self, new_exe: str):
-        """Sostituisce l'EXE corrente con quello scaricato e riavvia."""
-        current_exe = sys.executable
-        bat = os.path.join(tempfile.gettempdir(), "wastelog_update.bat")
-        with open(bat, "w") as f:
-            f.write(
-                f"@echo off\r\n"
-                f"timeout /t 2 /nobreak > nul\r\n"
-                f"copy /y \"{new_exe}\" \"{current_exe}\"\r\n"
-                f"start \"\" \"{current_exe}\"\r\n"
-                f"del \"%~f0\"\r\n"
-            )
-        subprocess.Popen(
-            ["cmd", "/c", bat],
-            creationflags=subprocess.CREATE_NO_WINDOW,
+        """Salva il nuovo EXE nella stessa cartella di quello corrente e apre Esplora File."""
+        dest_dir = os.path.dirname(sys.executable)
+        version = self.sidebar._update_version
+        dest = os.path.join(dest_dir, f"WasteLog_{version}.exe")
+        try:
+            import shutil
+            shutil.copy2(new_exe, dest)
+            os.remove(new_exe)
+        except Exception as e:
+            self._on_download_error(f"Impossibile salvare il file:\n{e}")
+            return
+
+        subprocess.Popen(["explorer", f"/select,{dest}"])
+        self.sidebar.update_btn.setText("  ↓   Aggiornamento disponibile")
+        self.sidebar.update_btn.setEnabled(True)
+        QMessageBox.information(
+            self, "Aggiornamento scaricato",
+            f"Il nuovo eseguibile è stato salvato in:\n{dest}\n\n"
+            "Chiudi WasteLog e avvia il nuovo file per completare l'aggiornamento.",
         )
-        QApplication.quit()
 
     def _on_download_error(self, msg: str):
         self.sidebar.update_btn.setText("  ↓   Aggiornamento disponibile")
