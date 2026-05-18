@@ -24,9 +24,13 @@ jobs:
 
       - name: Get version
         id: get_version
+        shell: python
         run: |
-          $v = python -c "import re; m = re.search(r\"VERSION\s*=\s*'(.+?)'\", open('main.py').read()) or re.search(r'VERSION\s*=\s*\"(.+?)\"', open('main.py').read()); print(m.group(1))"
-          echo "version=$v" >> $env:GITHUB_OUTPUT
+          import re, os
+          content = open('main.py').read()
+          m = re.search(r'VERSION\s*=\s*["\']([^"\']+)', content)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"version={m.group(1)}\n")
 
       - name: Build EXE
         run: pyinstaller --onefile --windowed --name WasteLog main.py
