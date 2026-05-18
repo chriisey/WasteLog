@@ -72,7 +72,7 @@ from PyQt6.QtGui import QFont  # (importato per futuri usi tipografici)
 
 from database import Database  # il nostro livello dati
 
-VERSION      = "1.0.2"
+VERSION      = "1.0.3"
 GITHUB_OWNER = "chriisey"
 GITHUB_REPO  = "WasteLog"
 
@@ -918,7 +918,7 @@ class SummaryPage(QWidget):
         # il QTableWidget interno (che aggiorniamo in refresh).
         self.prod_unita_tbl = self._make_card(
             cols_row, "Per Produttore e Unità Locale",
-            ["Produttore", "Unità Locale", "Peso Totale (kg)"]
+            ["RT", "Produttore", "Unità Locale", "Peso Totale (kg)"]
         )
         self.err_tbl = self._make_card(
             cols_row, "Per Codice ERR",
@@ -1013,8 +1013,8 @@ class SummaryPage(QWidget):
         # Aggiorna la tabella "Per Produttore e Unità Locale"
         self._fill(
             self.prod_unita_tbl,
-            [(r["produttore"], r["ul"], r["totale"])
-             for r in self.db.sum_produttore_unita()]
+            [(f"RT{i}", r["produttore"], r["ul"], r["totale"])
+             for i, r in enumerate(self.db.sum_produttore_unita(), start=1)]
         )
 
         # Aggiorna la tabella "Per Codice ERR"

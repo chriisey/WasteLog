@@ -211,7 +211,7 @@ class Database:
             "SELECT produttore, indirizzo AS ul, SUM(peso) totale"
             " FROM records"
             " GROUP BY produttore, indirizzo"
-            " ORDER BY totale DESC"
+            " ORDER BY MIN(id)"
         ).fetchall()
 
     def sum_destinatario(self):
