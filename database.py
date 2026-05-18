@@ -214,6 +214,14 @@ class Database:
             " ORDER BY totale DESC"
         ).fetchall()
 
+    def sum_destinatario(self):
+        return self._conn.execute(
+            "SELECT destinatario, SUM(peso) totale"
+            " FROM records"
+            " GROUP BY destinatario"
+            " ORDER BY totale DESC"
+        ).fetchall()
+
     def sum_codice_err(self):
         """
         Restituisce la somma dei pesi raggruppata per codice ERR.

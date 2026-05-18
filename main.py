@@ -72,7 +72,7 @@ from PyQt6.QtGui import QFont  # (importato per futuri usi tipografici)
 
 from database import Database  # il nostro livello dati
 
-VERSION      = "1.0.1"
+VERSION      = "1.0.2"
 GITHUB_OWNER = "chriisey"
 GITHUB_REPO  = "WasteLog"
 
@@ -381,8 +381,6 @@ class UpdateChecker(QThread):
                 if asset["name"].lower().endswith(".exe"):
                     url = asset["browser_download_url"]
                     break
-            if not url:
-                url = data.get("html_url", "")
 
             self.update_available.emit(remote, url)
         except Exception:
@@ -926,6 +924,10 @@ class SummaryPage(QWidget):
             cols_row, "Per Codice ERR",
             ["Codice ERR", "Peso Totale (kg)"]
         )
+        self.dest_tbl = self._make_card(
+            cols_row, "Per Destinazione",
+            ["Destinatario", "Peso Totale (kg)"]
+        )
         root.addLayout(cols_row)
 
     def _make_card(self, parent_layout: QHBoxLayout, title: str,
@@ -1019,6 +1021,12 @@ class SummaryPage(QWidget):
         self._fill(
             self.err_tbl,
             [(r["codice_err"], r["totale"]) for r in self.db.sum_codice_err()]
+        )
+
+        # Aggiorna la tabella "Per Destinazione"
+        self._fill(
+            self.dest_tbl,
+            [(r["destinatario"], r["totale"]) for r in self.db.sum_destinatario()]
         )
 
 
@@ -1328,7 +1336,7 @@ class MainWindow(QMainWindow):
         if risposta != QMessageBox.StandardButton.Yes:
             return
 
-        if not getattr(sys, "frozen", False):
+        if not getattr(sys, "frozen", False) or not url:
             webbrowser.open(
                 f"https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
             )
