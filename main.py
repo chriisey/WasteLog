@@ -72,7 +72,7 @@ from PyQt6.QtGui import QFont  # (importato per futuri usi tipografici)
 
 from database import Database  # il nostro livello dati
 
-VERSION      = "1.0.0"
+VERSION      = "1.0.1"
 GITHUB_OWNER = "chriisey"
 GITHUB_REPO  = "WasteLog"
 
@@ -94,108 +94,93 @@ Il foglio di stile viene applicato globalmente all'intera app
 tramite app.setStyleSheet() nel main().
 """
 APP_STYLE = """
-/* Font di default per tutti i widget */
 * {
     font-family: "Segoe UI", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Sfondo grigio-blu chiaro per la finestra principale */
 QMainWindow, QWidget#root {
     background-color: #F0F4F8;
 }
 
 /* ── SIDEBAR ──────────────────────────────────────────────────────── */
 
-/* Pannello sinistro: sfondo blu notte scuro */
 QFrame#sidebar {
     background-color: #1A2035;
     border: none;
 }
 
-/* Nome app in alto nella sidebar */
 QLabel#app_name {
     color: #F8FAFC;
-    font-size: 19px;
+    font-size: 16px;
     font-weight: 700;
 }
 
-/* Sottotitolo sotto il nome app */
 QLabel#app_sub {
     color: #475569;
-    font-size: 11px;
+    font-size: 10px;
 }
 
-/* Pulsanti di navigazione: stato normale (non selezionato) */
 QPushButton#nav_btn {
     background-color: transparent;
-    color: #94A3B8;           /* grigio medio */
+    color: #94A3B8;
     border: none;
-    border-radius: 10px;
-    padding: 13px 16px 13px 18px;
+    border-radius: 8px;
+    padding: 10px 12px 10px 14px;
     text-align: left;
-    font-size: 13px;
+    font-size: 12px;
 }
-/* Effetto hover: leggero schiarimento dello sfondo */
 QPushButton#nav_btn:hover {
     background-color: #243050;
     color: #E2E8F0;
 }
-/* Stato attivo (pagina corrente): sfondo blu accent */
 QPushButton#nav_btn[active="true"] {
     background-color: #2563EB;
     color: #FFFFFF;
     font-weight: 700;
 }
 
-/* Etichette statistiche in fondo alla sidebar */
-QLabel#stat_key { color: #475569; font-size: 11px; }
-QLabel#stat_val { color: #CBD5E1; font-size: 13px; font-weight: 700; }
+QLabel#stat_key { color: #475569; font-size: 10px; }
+QLabel#stat_val { color: #CBD5E1; font-size: 11px; font-weight: 700; }
 
 /* ── BARRA TITOLO PAGINA ──────────────────────────────────────────── */
 
-/* Striscia bianca in cima all'area destra */
 QFrame#page_hdr {
     background-color: #FFFFFF;
     border-bottom: 1px solid #E2E8F0;
 }
-QLabel#page_title { color: #1E293B; font-size: 22px; font-weight: 700; }
-QLabel#page_sub   { color: #64748B; font-size: 13px; }
+QLabel#page_title { color: #1E293B; font-size: 18px; font-weight: 700; }
+QLabel#page_sub   { color: #64748B; font-size: 11px; }
 
 /* ── CARD ─────────────────────────────────────────────────────────── */
 
-/* Contenitori bianchi con bordo sottile e angoli arrotondati */
 QFrame#card {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
-    border-radius: 14px;
+    border-radius: 10px;
 }
-/* Variante per le schede RIF (angoli leggermente meno arrotondati) */
 QFrame#rif_card {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
-    border-radius: 12px;
+    border-radius: 8px;
 }
 
 /* ── CAMPI INPUT ──────────────────────────────────────────────────── */
 
-/* Etichetta sopra ogni campo (es. "PRODUTTORE") */
 QLabel#field_lbl {
     color: #64748B;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
 }
 
-/* Campo di testo normale */
 QLineEdit {
     border: 1.5px solid #CBD5E1;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 13px;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 12px;
     background-color: #FFFFFF;
     color: #1E293B;
     selection-background-color: #BFDBFE;
 }
-/* Quando il campo ha il focus (cursore dentro): bordo blu */
 QLineEdit:focus {
     border-color: #2563EB;
     background-color: #F8FBFF;
@@ -203,27 +188,25 @@ QLineEdit:focus {
 
 /* ── PULSANTI ─────────────────────────────────────────────────────── */
 
-/* Pulsante principale "Aggiungi Record" */
 QPushButton#add_btn {
     background-color: #2563EB;
     color: #FFFFFF;
     border: none;
-    border-radius: 10px;
-    padding: 13px 28px;
-    font-size: 14px;
+    border-radius: 8px;
+    padding: 9px 22px;
+    font-size: 13px;
     font-weight: 700;
-    min-width: 180px;
+    min-width: 160px;
 }
 QPushButton#add_btn:hover   { background-color: #1D4ED8; }
 QPushButton#add_btn:pressed { background-color: #1E40AF; }
 
-/* Pulsante "Elimina" per ogni riga della tabella */
 QPushButton#del_btn {
     background-color: transparent;
     color: #DC2626;
     border: 1px solid #FECACA;
-    border-radius: 6px;
-    padding: 3px 10px;
+    border-radius: 5px;
+    padding: 2px 8px;
     font-size: 11px;
 }
 QPushButton#del_btn:hover {
@@ -233,92 +216,81 @@ QPushButton#del_btn:hover {
 
 /* ── TABELLE ──────────────────────────────────────────────────────── */
 
-/* Stile generale delle tabelle dati */
 QTableWidget {
     border: none;
     background-color: #FFFFFF;
-    gridline-color: #F1F5F9;         /* linee di griglia quasi invisibili */
-    alternate-background-color: #F8FAFC;  /* righe alternate leggermente grigie */
-    font-size: 13px;
+    gridline-color: #F1F5F9;
+    alternate-background-color: #F8FAFC;
+    font-size: 12px;
     color: #1E293B;
-    selection-background-color: #DBEAFE;  /* selezione: azzurro chiaro */
-    outline: none;                    /* rimuove il bordo tratteggiato di focus */
+    selection-background-color: #DBEAFE;
+    outline: none;
 }
 QTableWidget::item {
-    padding: 0px 12px;
-    border-bottom: 1px solid #F1F5F9;  /* separatore leggero tra righe */
+    padding: 0px 8px;
+    border-bottom: 1px solid #F1F5F9;
 }
 QTableWidget::item:selected {
     background-color: #DBEAFE;
     color: #1E293B;
 }
 
-/* Intestazioni delle colonne */
 QHeaderView { background-color: #F8FAFC; }
 QHeaderView::section {
     background-color: #F8FAFC;
     color: #64748B;
     border: none;
     border-bottom: 2px solid #E2E8F0;
-    padding: 10px 12px;
-    font-size: 11px;
+    padding: 7px 10px;
+    font-size: 10px;
     font-weight: 700;
 }
 
 /* ── SCROLL ───────────────────────────────────────────────────────── */
 
-/* Rimuove il bordo dell'area scorrevole */
 QScrollArea { border: none; background-color: transparent; }
 
-/* Scrollbar verticale sottile e discreta */
 QScrollBar:vertical {
     background: transparent;
-    width: 6px;
+    width: 5px;
     margin: 0;
 }
 QScrollBar::handle:vertical {
-    background: #CBD5E1;  /* grigio chiaro */
+    background: #CBD5E1;
     border-radius: 3px;
-    min-height: 24px;
+    min-height: 20px;
 }
-/* Nasconde le frecce su/giù della scrollbar */
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
 
 /* ── ETICHETTE VARIE ──────────────────────────────────────────────── */
 
-QLabel#section_lbl  { color: #1E293B; font-size: 15px; font-weight: 700; }
+QLabel#section_lbl  { color: #1E293B; font-size: 13px; font-weight: 700; }
 
-/* Badge colorato con il codice ERR nella scheda RIF */
 QLabel#err_badge {
     background-color: #DBEAFE;
     color: #1D4ED8;
-    border-radius: 8px;
-    padding: 5px 14px;
-    font-size: 13px;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
     font-weight: 700;
 }
 
-/* Totale verde nella scheda RIF */
-QLabel#rif_total { color: #059669; font-size: 13px; font-weight: 700; }
-
-/* Numero grande nella pagina Riepilogo */
-QLabel#big_total { color: #2563EB; font-size: 52px; font-weight: 700; }
-
-/* Etichette di supporto */
-QLabel#total_unit { color: #64748B; font-size: 14px; }
-QLabel#count_lbl  { color: #94A3B8; font-size: 12px; }
-QLabel#sum_hdr    { color: #1E293B; font-size: 15px; font-weight: 700; }
-QLabel#no_data    { color: #94A3B8; font-size: 15px; }
+QLabel#rif_total  { color: #059669; font-size: 12px; font-weight: 700; }
+QLabel#big_total  { color: #2563EB; font-size: 40px; font-weight: 700; }
+QLabel#total_unit { color: #64748B; font-size: 12px; }
+QLabel#count_lbl  { color: #94A3B8; font-size: 11px; }
+QLabel#sum_hdr    { color: #1E293B; font-size: 13px; font-weight: 700; }
+QLabel#no_data    { color: #94A3B8; font-size: 13px; }
 
 /* Pulsante aggiornamento nella sidebar */
 QPushButton#update_btn {
     background-color: #059669;
     color: #FFFFFF;
     border: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 12px;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
     font-weight: 700;
     text-align: left;
 }
@@ -363,7 +335,7 @@ def _field(label_text: str, placeholder: str = "") -> tuple:
 
     entry = QLineEdit()
     entry.setPlaceholderText(placeholder)
-    entry.setMinimumHeight(44)  # altezza minima per un tocco comodo
+    entry.setMinimumHeight(36)
 
     lay.addWidget(lbl)
     lay.addWidget(entry)
@@ -479,15 +451,15 @@ class FormPage(QWidget):
 
         # Layout verticale principale con margini e spaziatura
         root = QVBoxLayout(self)
-        root.setContentsMargins(32, 24, 32, 24)  # margini: sx, top, dx, bottom
-        root.setSpacing(20)
+        root.setContentsMargins(22, 16, 22, 16)
+        root.setSpacing(14)
 
         # ── Card del form ──────────────────────────────────────────
         card = QFrame()
-        card.setObjectName("card")  # aggancia lo stile QFrame#card
+        card.setObjectName("card")
         cly = QVBoxLayout(card)
-        cly.setContentsMargins(28, 24, 28, 28)
-        cly.setSpacing(16)
+        cly.setContentsMargins(20, 14, 20, 16)
+        cly.setSpacing(12)
 
         # Titolo interno alla card
         lbl = QLabel("Nuovo Record")
@@ -496,8 +468,8 @@ class FormPage(QWidget):
 
         # Griglia 3 righe × 2 colonne per i campi del form
         grid = QGridLayout()
-        grid.setHorizontalSpacing(16)  # spazio tra le due colonne
-        grid.setVerticalSpacing(12)    # spazio tra le righe
+        grid.setHorizontalSpacing(12)
+        grid.setVerticalSpacing(8)
 
         # Riga 0: Produttore (colonna 0) | Codice ERR (colonna 1)
         w, self.f_prod  = _field("Produttore", "es. Mario Rossi Srl")
@@ -565,7 +537,7 @@ class FormPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setShowGrid(False)          # nasconde la griglia
         self.table.verticalHeader().setVisible(False)  # nasconde numeri di riga
-        self.table.setMinimumHeight(280)
+        self.table.setMinimumHeight(200)
 
         # Configurazione della larghezza delle colonne:
         hv = self.table.horizontalHeader()
@@ -576,7 +548,7 @@ class FormPage(QWidget):
         hv.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Peso
         # Colonna pulsante: larghezza fissa
         hv.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed)
-        hv.resizeSection(5, 84)
+        hv.resizeSection(5, 74)
 
         tly.addWidget(self.table)
         root.addWidget(tbl_card)
@@ -686,7 +658,7 @@ class FormPage(QWidget):
         for r in records:
             row = self.table.rowCount()
             self.table.insertRow(row)
-            self.table.setRowHeight(row, 48)  # altezza riga in pixel
+            self.table.setRowHeight(row, 40)
 
             # Riempie le prime 4 colonne con i dati testuali
             for col, key in enumerate(
@@ -750,8 +722,8 @@ class RifCard(QFrame):
     def _build(self, codice_err: str, records: list):
         """Costruisce l'header e la tabella della scheda."""
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(20, 18, 20, 20)
-        lay.setSpacing(14)
+        lay.setContentsMargins(14, 12, 14, 14)
+        lay.setSpacing(10)
 
         # ── Header della scheda ────────────────────────────────────
         hdr = QHBoxLayout()
@@ -771,7 +743,7 @@ class RifCard(QFrame):
         t_lbl.setObjectName("rif_total")
 
         hdr.addWidget(badge)
-        hdr.addSpacing(10)
+        hdr.addSpacing(6)
         hdr.addWidget(n_lbl)
         hdr.addStretch()  # spinge il totale verso destra
         hdr.addWidget(t_lbl)
@@ -796,17 +768,15 @@ class RifCard(QFrame):
 
         # Popola le righe con i dati delle bustine
         for row, r in enumerate(records):
-            tbl.setRowHeight(row, 44)
+            tbl.setRowHeight(row, 38)
             for col, key in enumerate(
                 ["produttore", "indirizzo", "destinatario"]
             ):
                 tbl.setItem(row, col, _item(r[key]))
-            # Peso allineato a destra
             tbl.setItem(row, 3,
                         _item(f"{r['peso']:,.2f}", Qt.AlignmentFlag.AlignRight))
 
-        # Altezza fissa: intestazione (38px) + righe (44px × n) + bordi (2px)
-        tbl.setFixedHeight(38 + 44 * len(records) + 2)
+        tbl.setFixedHeight(32 + 38 * len(records) + 2)
         lay.addWidget(tbl)
 
 
@@ -845,8 +815,8 @@ class RifPage(QScrollArea):
         # Contenitore interno (il widget "scorrevole")
         self._container = QWidget()
         self._lay = QVBoxLayout(self._container)
-        self._lay.setContentsMargins(32, 24, 32, 24)
-        self._lay.setSpacing(16)  # spazio tra una scheda e l'altra
+        self._lay.setContentsMargins(20, 16, 20, 16)
+        self._lay.setSpacing(12)
 
         self.setWidget(self._container)
 
@@ -910,16 +880,16 @@ class SummaryPage(QWidget):
     def _build(self):
         """Costruisce la struttura fissa della pagina."""
         root = QVBoxLayout(self)
-        root.setContentsMargins(32, 24, 32, 24)
-        root.setSpacing(20)
+        root.setContentsMargins(22, 16, 22, 16)
+        root.setSpacing(14)
 
         # ── Card peso totale ───────────────────────────────────────
         tc = QFrame()
         tc.setObjectName("card")
         tly = QVBoxLayout(tc)
-        tly.setContentsMargins(40, 28, 40, 28)
-        tly.setAlignment(Qt.AlignmentFlag.AlignCenter)  # tutto centrato
-        tly.setSpacing(4)
+        tly.setContentsMargins(28, 16, 28, 16)
+        tly.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        tly.setSpacing(2)
 
         # Il numero grande (es. "12.450,00") — aggiornato in refresh()
         self.total_lbl = QLabel("0,00")
@@ -942,9 +912,8 @@ class SummaryPage(QWidget):
         tly.addWidget(self.n_lbl)
         root.addWidget(tc)
 
-        # ── Due colonne: Per Produttore | Per Unità Locale ─────────
         cols_row = QHBoxLayout()
-        cols_row.setSpacing(20)
+        cols_row.setSpacing(14)
 
         # Crea le due card con le rispettive tabelle.
         # _make_card aggiunge la card direttamente a cols_row e restituisce
@@ -981,7 +950,7 @@ class SummaryPage(QWidget):
         # Intestazione con il titolo della sezione
         hdr_w = QWidget()
         hly = QHBoxLayout(hdr_w)
-        hly.setContentsMargins(20, 16, 20, 12)
+        hly.setContentsMargins(16, 10, 16, 8)
         lbl = QLabel(title)
         lbl.setObjectName("sum_hdr")
         hly.addWidget(lbl)
@@ -996,7 +965,7 @@ class SummaryPage(QWidget):
         tbl.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         tbl.setShowGrid(False)
         tbl.verticalHeader().setVisible(False)
-        tbl.setMinimumHeight(200)
+        tbl.setMinimumHeight(160)
 
         hv = tbl.horizontalHeader()
         for i in range(ncols - 1):
@@ -1018,7 +987,7 @@ class SummaryPage(QWidget):
         for row_data in rows:
             row = tbl.rowCount()
             tbl.insertRow(row)
-            tbl.setRowHeight(row, 44)
+            tbl.setRowHeight(row, 38)
             for col, val in enumerate(row_data[:-1]):
                 tbl.setItem(row, col, _item(str(val)))
             tbl.setItem(row, len(row_data) - 1,
@@ -1079,7 +1048,7 @@ class Sidebar(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("sidebar")
-        self.setFixedWidth(230)
+        self.setFixedWidth(210)
         self._btns: list[QPushButton] = []
         self._update_version = ""
         self._update_url     = ""
@@ -1088,14 +1057,14 @@ class Sidebar(QFrame):
     def _build(self):
         """Costruisce il contenuto della sidebar."""
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(12, 28, 12, 20)
-        lay.setSpacing(4)
+        lay.setContentsMargins(10, 20, 10, 16)
+        lay.setSpacing(3)
 
         # ── Logo / nome app ────────────────────────────────────────
         logo = QWidget()
         lly = QVBoxLayout(logo)
-        lly.setContentsMargins(10, 0, 10, 0)
-        lly.setSpacing(3)
+        lly.setContentsMargins(8, 0, 8, 0)
+        lly.setSpacing(2)
 
         name_lbl = QLabel("WasteLog")
         name_lbl.setObjectName("app_name")
@@ -1106,7 +1075,7 @@ class Sidebar(QFrame):
         lly.addWidget(name_lbl)
         lly.addWidget(sub_lbl)
         lay.addWidget(logo)
-        lay.addSpacing(22)
+        lay.addSpacing(14)
 
         # ── Pulsanti di navigazione ────────────────────────────────
         # Ogni tupla: (emoji icona, testo etichetta)
@@ -1121,7 +1090,7 @@ class Sidebar(QFrame):
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             # Proprietà dinamica "active": usata nel QSS per cambiare stile
             btn.setProperty("active", "false")
-            btn.setMinimumHeight(46)
+            btn.setMinimumHeight(40)
             # Lambda con default i=i per catturare il valore corrente
             # (evita il problema di late binding nei loop)
             btn.clicked.connect(lambda _, x=i: self._select(x))
@@ -1136,7 +1105,7 @@ class Sidebar(QFrame):
         sep.setStyleSheet("color: #243050; background-color: #243050;")
         sep.setFixedHeight(1)
         lay.addWidget(sep)
-        lay.addSpacing(12)
+        lay.addSpacing(8)
 
         # ── Bottone aggiornamento (nascosto finché non c'è update) ──
         self.update_btn = QPushButton("  ↓   Aggiornamento disponibile")
@@ -1147,12 +1116,12 @@ class Sidebar(QFrame):
             lambda: self.update_clicked.emit(self._update_version, self._update_url)
         )
         lay.addWidget(self.update_btn)
-        lay.addSpacing(10)
+        lay.addSpacing(8)
 
         # ── Info database ──────────────────────────────────────────
         info = QWidget()
         ily = QVBoxLayout(info)
-        ily.setContentsMargins(10, 0, 10, 0)
+        ily.setContentsMargins(8, 0, 8, 0)
         ily.setSpacing(4)
         k = QLabel("Archivio locale")
         k.setObjectName("stat_key")
@@ -1225,8 +1194,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.db = Database()  # unica istanza del database per tutta l'app
         self.setWindowTitle("WasteLog — Gestione Formulari Rifiuti")
-        self.resize(1380, 880)       # dimensione iniziale della finestra
-        self.setMinimumSize(1100, 700)  # dimensione minima ridimensionabile
+        self.resize(1200, 800)
+        self.setMinimumSize(900, 600)
         self._build()
 
     def _build(self):
@@ -1258,9 +1227,9 @@ class MainWindow(QMainWindow):
         # Barra del titolo in cima all'area destra
         self.hdr_frame = QFrame()
         self.hdr_frame.setObjectName("page_hdr")
-        self.hdr_frame.setFixedHeight(72)  # altezza fissa della barra
+        self.hdr_frame.setFixedHeight(58)
         hly = QHBoxLayout(self.hdr_frame)
-        hly.setContentsMargins(32, 0, 32, 0)
+        hly.setContentsMargins(24, 0, 24, 0)
 
         # Titolo e sottotitolo della pagina corrente
         self.pg_title = QLabel("Inserimento")
