@@ -32,7 +32,14 @@ FLUSSO DEI DATI
    o SummaryPage, chiama refresh() per aggiornare la vista.
 """
 
-import sys  # per sys.argv (richiesto da QApplication) e sys.exit
+import sys
+import os
+import json
+import subprocess
+import tempfile
+import webbrowser
+import urllib.request
+import urllib.error
 
 # ── Importazioni Qt ──────────────────────────────────────────────────────────
 # PyQt6 è il binding Python per il framework Qt (C++).
@@ -59,10 +66,15 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import (
     Qt,           # costanti Qt (allineamento, cursori, orientazione, ecc.)
     pyqtSignal,   # per definire segnali personalizzati tra widget
+    QThread,      # thread Qt integrato nel ciclo eventi
 )
 from PyQt6.QtGui import QFont  # (importato per futuri usi tipografici)
 
 from database import Database  # il nostro livello dati
+
+VERSION      = "1.0.0"
+GITHUB_OWNER = "chriisey"
+GITHUB_REPO  = "WasteLog"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -298,6 +310,25 @@ QLabel#total_unit { color: #64748B; font-size: 14px; }
 QLabel#count_lbl  { color: #94A3B8; font-size: 12px; }
 QLabel#sum_hdr    { color: #1E293B; font-size: 15px; font-weight: 700; }
 QLabel#no_data    { color: #94A3B8; font-size: 15px; }
+
+/* Pulsante aggiornamento nella sidebar */
+QPushButton#update_btn {
+    background-color: #059669;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+}
+QPushButton#update_btn:hover   { background-color: #047857; }
+QPushButton#update_btn:pressed { background-color: #065F46; }
+QPushButton#update_btn:disabled {
+    background-color: #1A2035;
+    color: #475569;
+    border: 1px solid #243050;
+}
 """
 
 
@@ -352,6 +383,56 @@ def _item(text: str, align=Qt.AlignmentFlag.AlignLeft) -> QTableWidgetItem:
     it = QTableWidgetItem(str(text))
     it.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | align)
     return it
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGGIORNAMENTI AUTOMATICI
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class UpdateChecker(QThread):
+    """Controlla in background se esiste una nuova release su GitHub."""
+    update_available = pyqtSignal(str, str)  # (versione, download_url)
+
+    def run(self):
+        try:
+            api = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
+            req = urllib.request.Request(api, headers={"User-Agent": "WasteLog"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read())
+
+            remote = data.get("tag_name", "").lstrip("v")
+            if not remote or remote == VERSION:
+                return
+
+            url = ""
+            for asset in data.get("assets", []):
+                if asset["name"].lower().endswith(".exe"):
+                    url = asset["browser_download_url"]
+                    break
+            if not url:
+                url = data.get("html_url", "")
+
+            self.update_available.emit(remote, url)
+        except Exception:
+            pass
+
+
+class FileDownloader(QThread):
+    """Scarica un file in background e notifica quando ha finito."""
+    done  = pyqtSignal(str)   # percorso file scaricato
+    error = pyqtSignal(str)
+
+    def __init__(self, url: str, parent=None):
+        super().__init__(parent)
+        self.url = url
+
+    def run(self):
+        try:
+            tmp = tempfile.mktemp(suffix=".exe")
+            urllib.request.urlretrieve(self.url, tmp)
+            self.done.emit(tmp)
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -992,13 +1073,16 @@ class Sidebar(QFrame):
     MainWindow riceve questo segnale e cambia la pagina visibile nello stack.
     """
 
-    nav_changed = pyqtSignal(int)  # int = indice della pagina
+    nav_changed    = pyqtSignal(int)         # indice pagina selezionata
+    update_clicked = pyqtSignal(str, str)   # (versione, download_url)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("sidebar")
-        self.setFixedWidth(230)  # larghezza fissa della sidebar in pixel
-        self._btns: list[QPushButton] = []  # lista dei pulsanti di navigazione
+        self.setFixedWidth(230)
+        self._btns: list[QPushButton] = []
+        self._update_version = ""
+        self._update_url     = ""
         self._build()
 
     def _build(self):
@@ -1054,6 +1138,17 @@ class Sidebar(QFrame):
         lay.addWidget(sep)
         lay.addSpacing(12)
 
+        # ── Bottone aggiornamento (nascosto finché non c'è update) ──
+        self.update_btn = QPushButton("  ↓   Aggiornamento disponibile")
+        self.update_btn.setObjectName("update_btn")
+        self.update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.update_btn.setVisible(False)
+        self.update_btn.clicked.connect(
+            lambda: self.update_clicked.emit(self._update_version, self._update_url)
+        )
+        lay.addWidget(self.update_btn)
+        lay.addSpacing(10)
+
         # ── Info database ──────────────────────────────────────────
         info = QWidget()
         ily = QVBoxLayout(info)
@@ -1091,7 +1186,14 @@ class Sidebar(QFrame):
             btn.style().unpolish(btn)  # rimuove lo stile corrente
             btn.style().polish(btn)    # riapplica lo stile aggiornato
 
-        self.nav_changed.emit(idx)  # notifica la MainWindow
+        self.nav_changed.emit(idx)
+
+    def show_update(self, version: str, url: str):
+        """Mostra il bottone di aggiornamento con la versione disponibile."""
+        self._update_version = version
+        self._update_url     = url
+        self.update_btn.setText(f"  ↓   v{version} disponibile")
+        self.update_btn.setVisible(True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1142,8 +1244,8 @@ class MainWindow(QMainWindow):
 
         # ── Sidebar ────────────────────────────────────────────────
         self.sidebar = Sidebar()
-        # Quando la sidebar emette nav_changed, chiamiamo _switch
         self.sidebar.nav_changed.connect(self._switch)
+        self.sidebar.update_clicked.connect(self._on_update_clicked)
         main.addWidget(self.sidebar)
 
         # ── Area destra (header + pagine) ─────────────────────────
@@ -1197,6 +1299,11 @@ class MainWindow(QMainWindow):
         rly.addWidget(self.stack)
         main.addWidget(right)
 
+        # ── Controllo aggiornamenti in background ──────────────────
+        self._checker = UpdateChecker()
+        self._checker.update_available.connect(self.sidebar.show_update)
+        self._checker.start()
+
     # ── Slot: cambio pagina ────────────────────────────────────────
 
     def _switch(self, idx: int):
@@ -1231,16 +1338,66 @@ class MainWindow(QMainWindow):
     def _on_data_changed(self):
         """
         Chiamato quando FormPage emette record_added (inserimento o eliminazione).
-
-        Se l'utente si trova già su Schede RIF o Riepilogo nel momento
-        in cui avviene la modifica (caso raro ma possibile in futuro),
-        aggiorna la vista corrente in tempo reale.
         """
         idx = self.stack.currentIndex()
         if idx == 1:
             self.rif_page.refresh()
         elif idx == 2:
             self.summary_page.refresh()
+
+    # ── Slot: aggiornamento software ───────────────────────────────
+
+    def _on_update_clicked(self, version: str, url: str):
+        """Chiede conferma e avvia il download del nuovo eseguibile."""
+        risposta = QMessageBox.question(
+            self, "Aggiornamento disponibile",
+            f"È disponibile la versione {version} di WasteLog.\n\n"
+            "Vuoi scaricarla e installare l'aggiornamento adesso?\n"
+            "L'applicazione verrà riavviata automaticamente.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if risposta != QMessageBox.StandardButton.Yes:
+            return
+
+        if not getattr(sys, "frozen", False):
+            webbrowser.open(
+                f"https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
+            )
+            return
+
+        self.sidebar.update_btn.setText("  ↓   Download in corso…")
+        self.sidebar.update_btn.setEnabled(False)
+
+        self._downloader = FileDownloader(url)
+        self._downloader.done.connect(self._apply_update)
+        self._downloader.error.connect(self._on_download_error)
+        self._downloader.start()
+
+    def _apply_update(self, new_exe: str):
+        """Sostituisce l'EXE corrente con quello scaricato e riavvia."""
+        current_exe = sys.executable
+        bat = os.path.join(tempfile.gettempdir(), "wastelog_update.bat")
+        with open(bat, "w") as f:
+            f.write(
+                f"@echo off\r\n"
+                f"timeout /t 2 /nobreak > nul\r\n"
+                f"copy /y \"{new_exe}\" \"{current_exe}\"\r\n"
+                f"start \"\" \"{current_exe}\"\r\n"
+                f"del \"%~f0\"\r\n"
+            )
+        subprocess.Popen(
+            ["cmd", "/c", bat],
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+        QApplication.quit()
+
+    def _on_download_error(self, msg: str):
+        self.sidebar.update_btn.setText("  ↓   Aggiornamento disponibile")
+        self.sidebar.update_btn.setEnabled(True)
+        QMessageBox.critical(
+            self, "Errore download",
+            f"Impossibile scaricare l'aggiornamento:\n{msg}"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

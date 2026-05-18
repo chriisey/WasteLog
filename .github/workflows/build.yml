@@ -22,14 +22,20 @@ jobs:
       - name: Install dependencies
         run: pip install pyqt6 pyinstaller
 
+      - name: Get version
+        id: get_version
+        run: |
+          $v = python -c "import re; m = re.search(r\"VERSION\s*=\s*'(.+?)'\", open('main.py').read()) or re.search(r'VERSION\s*=\s*\"(.+?)\"', open('main.py').read()); print(m.group(1))"
+          echo "version=$v" >> $env:GITHUB_OUTPUT
+
       - name: Build EXE
         run: pyinstaller --onefile --windowed --name WasteLog main.py
 
       - name: Pubblica Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: WasteLog — ultima versione
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: WasteLog v${{ steps.get_version.outputs.version }}
           body: Scarica WasteLog.exe e avvialo direttamente, nessuna installazione richiesta.
           files: dist/WasteLog.exe
         env:
