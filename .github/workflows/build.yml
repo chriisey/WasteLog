@@ -27,7 +27,7 @@ jobs:
         shell: python
         run: |
           import re, os
-          content = open('main.py').read()
+          content = open('main.py', encoding='utf-8').read()
           m = re.search(r'VERSION\s*=\s*["\']([^"\']+)', content)
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f"version={m.group(1)}\n")
